@@ -13,3 +13,6 @@
   - kobert_extended_with_subject.pth 
   - kobert_importance.pth
  
+### 작동 예시
+![image](https://github.com/user-attachments/assets/d25a481a-cdfc-4334-88eb-457d5288a167)
+![image](https://github.com/user-attachments/assets/21b82b33-045e-4066-a6dc-260d2544fc22)
