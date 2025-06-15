@@ -1,0 +1,31 @@
+*.pt
+*.pth
+*.ckpt
+
+__pycache__/
+*.py[cod]
+
+.env
+*.env
+*.ini
+
+*.csv
+*.tsv
+*.json
+*.zip
+*.tar
+*.gz
+*.npz
+*.npy
+
+*.log
+*.sqlite3
+*.db
+*.pdf
+*.mp4
+*.wav
+
+.idea/
+
+*.pt filter=lfs diff=lfs merge=lfs -text
+*.pth filter=lfs diff=lfs merge=lfs -text
