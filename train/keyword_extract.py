@@ -6,7 +6,7 @@ from kobert_tokenizer import KoBERTTokenizer
 from transformers import BertForSequenceClassification
 import torch
 
-# ✅ KoBERT 모델 로드 (로컬 파인튜닝 모델)
+# KoBERT 모델 로드 (로컬 파인튜닝 모델)
 model_name = "skt/kobert-base-v1"
 tokenizer = KoBERTTokenizer.from_pretrained(model_name)
 model = BertForSequenceClassification.from_pretrained(model_name, num_labels=2)
@@ -60,7 +60,7 @@ def extract_kakao_dialogues(path):
 #     ]
 #     return [line for line in dialogue_lines if len(line) > 1]
 
-# ✅ 의미 있는 문장 필터링
+# 의미 있는 문장 필터링
 def is_valid_conversation(msg):
     if not re.search(r"[가-힣]", msg):
         return False
@@ -68,7 +68,7 @@ def is_valid_conversation(msg):
         return False
     return True
 
-# # ✅ 불용어 제거 및 키워드 추출
+# # 불용어 제거 및 키워드 추출
 # def extract_keywords(sentences):
 #     keyword_scores = defaultdict(float)
 #     for sentence in sentences:
@@ -111,7 +111,7 @@ def extract_interest_weighted_keywords(sentences):
 
         if label == 1:
             print(f"\n💬 문장: {sentence}")
-            print(f"🧠 관심도 분류: 관심 있음 (1)")
+            print(f"관심도 분류: 관심 있음 (1)")
 
         for kw, score in keywords:
             tokens = kw.split()
@@ -119,12 +119,12 @@ def extract_interest_weighted_keywords(sentences):
                 multiplier = 2.5 if len(tokens) > 1 else 2.0
                 final_score = score * (multiplier if label == 1 else 0.5)
                 keyword_scores[kw] += final_score
-                print(f"  🔑 키워드: {kw:15} | base: {score:.2f} → 적용 점수: {final_score:.2f}")
+                print(f"키워드: {kw:15} | base: {score:.2f} → 적용 점수: {final_score:.2f}")
 
         for noun in nouns:
             add_score = 0.3 if label == 1 else 0.1
             keyword_scores[noun] += add_score
-            print(f"  ➕ 명사 가중치: {noun:15} → {add_score:.2f}")
+            print(f"명사 가중치: {noun:15} → {add_score:.2f}")
 
     filtered_keywords = [
         (kw, sc) for kw, sc in keyword_scores.items()
@@ -135,18 +135,18 @@ def extract_interest_weighted_keywords(sentences):
 file_path = "Talk_2025.5.13 16_38-1.txt"
 data_by_date = extract_kakao_dialogues(file_path)
 
-print(f"✅ 날짜 블록 수: {len(data_by_date)}\n")
+print(f"날짜 블록 수: {len(data_by_date)}\n")
 
 for date, messages in sorted(data_by_date.items()):
     filtered_msgs = [msg for msg in messages if is_valid_conversation(msg)]
     print(f"▶ {date} / 대화 수: {len(messages)}")
     for m in messages:
         if not is_valid_conversation(m):
-            print(f"❌ 제외된 문장: {m}")
-    print(f"  🔍 유효 대화 수: {len(filtered_msgs)}")
+            print(f"제외된 문장: {m}")
+    print(f"유효 대화 수: {len(filtered_msgs)}")
 
     if len(filtered_msgs) == 0:
-        print("  ⚠️ 건너뜀: 의미 있는 대화 없음\n")
+        print("건너뜀: 의미 있는 대화 없음\n")
         continue
 
     keywords = extract_interest_weighted_keywords(filtered_msgs)
