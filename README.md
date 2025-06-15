@@ -8,6 +8,7 @@
 
 
 ### 용량이 커서 업로드하지 못한 파일
+- AIhub 멀티턴 대화 데이터 파일 (.csv)
 - 임베딩 벡터로 변환한 카카오톡 선물 item 파일 (.pt)
 - 모델 파일
   - kobert_extended_with_subject.pth 
