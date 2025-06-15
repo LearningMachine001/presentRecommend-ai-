@@ -1,0 +1,132 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+import csv
+
+# ——— 설정 ———
+BASE_URL    = "https://gift.kakao.com"
+MAIN_PAGE   = BASE_URL + "/brand/category/93"   # “베이커리/도넛/떡” 메인
+MAX_ITEMS   = 1000
+
+# 크롬 드라이버 초기화
+options = webdriver.ChromeOptions()
+options.add_argument('--start-maximized')
+driver = webdriver.Chrome(options=options)
+wait   = WebDriverWait(driver, 10)
+
+def crawl_subcategory(sub_name: str, sub_url: str):
+    """
+    한 소카테고리 페이지로 이동 → '상품' 탭 클릭 → 무한 스크롤 → 상품 정보 수집 → CSV 저장
+    """
+    print(f"\n▶ 크롤링 시작: {sub_name} → {sub_url}")
+    driver.get(sub_url)
+    time.sleep(2)
+
+    # '상품' 탭 클릭
+    tabs = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'a.link_tab')))
+    for tab in tabs:
+        # 탭 내부 span.txt_g 에 '상품' 텍스트가 있는지 확인
+        if tab.find_element(By.CSS_SELECTOR, 'span.txt_g').text.strip() == '상품':
+            driver.execute_script("arguments[0].click();", tab)
+            break
+    time.sleep(2)
+
+    # 무한 스크롤 (ul.list_prd  내부)
+        # ——— 무한 스크롤 (업데이트) ———
+    scroll_box = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'ul.list_prd')))
+    loaded = 0
+    while True:
+        items = driver.find_elements(By.CSS_SELECTOR, 'ul.list_prd > li')
+        # 1) 최대 도달 혹은 변화 없으면 끝
+        if len(items) >= MAX_ITEMS or len(items) == loaded:
+            break
+        loaded = len(items)
+
+        # 2) 페이지 맨 아래로 스크롤 (일부 로더 트리거용)
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(1)
+
+        # 3) 리스트 박스 내부로 스크롤 (상품 로드용)
+        driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", scroll_box)
+
+        # 4) 스피너 사라짐 대기
+        try:
+            wait.until(EC.invisibility_of_element((By.CSS_SELECTOR, 'div.global_spinner')))
+        except:
+            pass
+
+        # 5) 안정 대기
+        time.sleep(2)
+
+    print(f"  ⇒ 로딩된 상품 수: {len(items)}개")
+
+
+    # 상품 정보 수집
+    data = []
+    for item in items[:MAX_ITEMS]:
+        try:
+            name_tag  = item.find_element(By.CSS_SELECTOR, 'strong.txt_prdname')
+            brand_tag = item.find_element(By.CSS_SELECTOR, 'span.txt_brand')
+            price_tag = item.find_element(By.CSS_SELECTOR, 'em.num_price')
+            link_tag  = item.find_element(By.CSS_SELECTOR, 'a.link_info')
+            img_tag   = item.find_element(By.CSS_SELECTOR, 'img.img_thumb')
+
+            name       = name_tag.text.strip()
+            brand      = brand_tag.text.strip()
+            price      = price_tag.text.strip()
+            href       = link_tag.get_attribute('href')
+            product_url = href if href.startswith("http") else BASE_URL + href
+            img_url    = img_tag.get_attribute('src')
+
+            data.append([name, brand, price, product_url, img_url])
+        except Exception as e:
+            print("    • 수집 오류:", e)
+            continue
+
+    # CSV 저장
+    safe_name = sub_name.replace('/', '_')
+    filename  = f"{safe_name}_상품목록.csv"
+    with open(filename, 'w', newline='', encoding='utf-8-sig') as f:
+        writer = csv.writer(f)
+        writer.writerow(['상품명', '브랜드', '가격', '상품URL', '이미지URL'])
+        writer.writerows(data)
+    print(f"  ✅ {filename} 저장 완료")
+
+
+# ——— 메인 흐름 ———
+# 1) “베이커리/도넛/떡” 메인 페이지 로드
+driver.get(MAIN_PAGE)
+time.sleep(2)
+try:
+    wait.until(EC.invisibility_of_element((By.CSS_SELECTOR, 'div.global_spinner')))
+except:
+    pass
+
+# 2) 소카테고리 링크 수집
+subs = []
+lis  = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'ul.list_ctgmain > li')))
+for li in lis:
+    name_attr = li.get_attribute('data-tiara-copy')
+    if not name_attr:
+        continue
+    sub_name = name_attr.strip()
+    try:
+        a = li.find_element(By.CSS_SELECTOR, 'a.link_ctg')
+        href = a.get_attribute('href')
+        sub_url = href if href.startswith("http") else BASE_URL + href
+        subs.append((sub_name, sub_url))
+    except:
+        continue
+
+print(f"\n총 {len(subs)}개 소카테고리 발견:")
+for nm, url in subs:
+    print(" •", nm, "→", url)
+
+# 3) 각 소카테고리 순차 크롤링
+for sub_name, sub_url in subs:
+    crawl_subcategory(sub_name, sub_url)
+
+driver.quit()
+print("\n🎉 모든 소카테고리 크롤링 완료!")
