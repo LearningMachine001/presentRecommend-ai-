@@ -60,7 +60,7 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained("skt/kobert-base-v1", use_fast=False)
 
     model = KoBertExtendedModel()
-    model.load_state_dict(torch.load("kobert_extended_with_subject.pth", map_location=device), strict=False)
+    model.load_state_dict(torch.load("../kobert_extended_with_subject.pth", map_location=device), strict=False)
     model.to(device)
     model.eval()
 

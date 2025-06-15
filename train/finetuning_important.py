@@ -98,4 +98,4 @@ trainer.train()
 # 모델 저장
 model.save_pretrained("./kobert-importance")
 tokenizer.save_pretrained("./kobert-importance")
-torch.save(model.state_dict(), "./kobert_importance.pth")
+torch.save(model.state_dict(), "../kobert_importance.pth")

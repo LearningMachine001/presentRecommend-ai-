@@ -10,14 +10,14 @@ import torch
 model_name = "skt/kobert-base-v1"
 tokenizer = KoBERTTokenizer.from_pretrained(model_name)
 model = BertForSequenceClassification.from_pretrained(model_name, num_labels=2)
-model.load_state_dict(torch.load("./kobert_importance.pth", map_location="cpu"))
+model.load_state_dict(torch.load("../kobert_importance.pth", map_location="cpu"))
 model.eval()
 
 kw_model = KeyBERT(model="distiluse-base-multilingual-cased-v1")
 okt = Okt()
 
 # 불용어 사전 준비
-stopwords_path = "stopwords-ko.txt"
+stopwords_path = "../stopwords-ko.txt"
 with open(stopwords_path, encoding="utf-8") as f:
     stopwords = set(line.strip() for line in f if line.strip())
 

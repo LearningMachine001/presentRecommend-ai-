@@ -66,5 +66,5 @@ for epoch in range(epochs):
 
     print(f"[Epoch {epoch+1}] Loss: {total_loss:.4f}")
 
-torch.save(model.state_dict(), "kobert_multitask_trained.pth")
+torch.save(model.state_dict(), "../kobert_multitask_trained.pth")
 print("모델 저장 완료: kobert_multitask_trained.pth")
